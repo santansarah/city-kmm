@@ -9,8 +9,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.santansarah.city_kmm.Greeting
+import com.santansarah.city_kmm.SharedRes
+import com.santansarah.city_kmm.data.local.UserPreferences
+import com.santansarah.city_kmm.data.local.UserRepository
+import kotlinx.coroutines.runBlocking
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
+
+
+    val userRepo by inject<UserRepository>()
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -19,7 +29,14 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    GreetingView(Greeting().greet())
+
+                    var user: UserPreferences
+
+                    runBlocking {
+                        user = userRepo.fetchInitialPreferences()
+                    }
+
+                    GreetingView("User ID: " + user.userId)
                 }
             }
         }

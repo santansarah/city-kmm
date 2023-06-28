@@ -1,7 +1,40 @@
+import com.codingfeline.buildkonfig.compiler.FieldSpec.Type
+import com.codingfeline.buildkonfig.gradle.BuildKonfigExtension
+import org.jetbrains.kotlin.konan.properties.Properties
+
 plugins {
     kotlin("multiplatform")
     kotlin("native.cocoapods")
     id("com.android.library")
+    id("dev.icerock.mobile.multiplatform-resources")
+    kotlin("plugin.serialization") version "1.8.0"
+    id("com.codingfeline.buildkonfig")
+}
+
+@Suppress("TooGenericExceptionCaught")
+configure<BuildKonfigExtension> {
+    packageName = "com.santansarah.city_kmm"
+
+    val props = Properties()
+
+    try {
+        props.load(file("key.properties").inputStream())
+    } catch (e: Exception) {
+        // keys are private and can not be committed to git
+    }
+
+    defaultConfigs {
+        buildConfigField(
+            Type.STRING,
+            "WEB_CLIENT_ID",
+            props["WEB_CLIENT_ID"]?.toString()
+        )
+        buildConfigField(
+            Type.STRING,
+            "KTOR_IP_ADDR",
+            props["KTOR_IP_ADDR"]?.toString()
+        )
+    }
 }
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
@@ -31,9 +64,20 @@ kotlin {
     }
     
     sourceSets {
+        val androidMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.android)
+            }
+        }
         val commonMain by getting {
             dependencies {
-                //put your multiplatform dependencies here
+                implementation(libs.androidx.datastore.preferences.core)
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.bundles.ktor)
+                implementation(libs.koin.core)
+
+                api(libs.shareResources)
+                api(libs.kermit)
             }
         }
         val commonTest by getting {
@@ -50,4 +94,9 @@ android {
     defaultConfig {
         minSdk = 29
     }
+}
+
+multiplatformResources {
+    multiplatformResourcesPackage = "com.santansarah.city_kmm"
+    multiplatformResourcesClassName = "SharedRes"
 }
